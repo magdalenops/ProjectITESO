@@ -22,4 +22,5 @@ void Sleep(unsigned int ms)
 
 	xSemaphore = xSemaphoreCreateBinary();
 	xSemaphoreTake( xSemaphore, portTICK_PERIOD_MS * ms);
+	vSemaphoreDelete(xSemaphore);
 }

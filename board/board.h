@@ -41,10 +41,6 @@
 /* The board name */
 #define BOARD_NAME "FRDM-K64F"
 
-//REMEMBER!!! This code cannot be debugged if OM5578+FRDM-K64F_REVD1 are used
-#define FRDM_K64F_REVD1 //LEGA For using the OM5578+FRDM-K64F_REVD1.
-//REMEMBER!!! This code cannot be debugged if OM5578+FRDM-K64F_REVD1 are used
-
 /* The UART to use for debug messages. */
 #define BOARD_DEBUG_UART_TYPE DEBUG_CONSOLE_DEVICE_TYPE_UART
 #define BOARD_DEBUG_UART_BASEADDR (uint32_t) UART0
@@ -143,17 +139,10 @@
 #define NXPNCI_I2C_INSTANCE 		I2C0
 #define NXPNCI_I2C_BAUDRATE 		(100000)
 #define NXPNCI_I2C_ADDR             (0x28)
-#ifdef FRDM_K64F_REVD1
-	#define NXPNCI_IRQ_PORTIRQn			PORTA_IRQn
-	#define NXPNCI_IRQ_GPIO				(GPIOA)
-	#define NXPNCI_IRQ_PORT				(PORTA)
-	#define NXPNCI_IRQ_PIN				(0U)
-#else
-	#define NXPNCI_IRQ_PORTIRQn			PORTC_IRQn
-	#define NXPNCI_IRQ_GPIO				(GPIOC)
-	#define NXPNCI_IRQ_PORT				(PORTC)
-	#define NXPNCI_IRQ_PIN				(12U)
-#endif
+#define NXPNCI_IRQ_PORTIRQn			PORTC_IRQn
+#define NXPNCI_IRQ_GPIO				(GPIOC)
+#define NXPNCI_IRQ_PORT				(PORTC)
+#define NXPNCI_IRQ_PIN				(12U)
 #define NXPNCI_VEN_GPIO				(GPIOC)
 #define NXPNCI_VEN_PORT				(PORTC)
 #define NXPNCI_VEN_PIN				(3U)
