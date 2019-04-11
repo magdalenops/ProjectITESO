@@ -12,6 +12,8 @@
 *                          arising from its use.
 */
 
+#define SYSVIEW_EN 1
+
 #include <stdio.h>
 #include "FreeRTOS.h"
 #include "task.h"
@@ -20,6 +22,11 @@
 #include "clock_config.h"
 #include <nfc_task.h>
 
+#if SYSVIEW_EN
+#include "SEGGER_SYSVIEW.h"
+#include "SEGGER_RTT.h"
+#include "SEGGER_SYSVIEW_FreeRTOS.h"
+#endif
 //-----------------------------------------------------------------------
 // Macros
 //-----------------------------------------------------------------------
@@ -32,6 +39,10 @@ int main(void) {
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
 
+#if SYSVIEW_EN
+    SEGGER_SYSVIEW_Conf();
+    printf("RTT block address is: 0x%x\n", &_SEGGER_RTT);
+#endif
 	printf("\nRunning the NXP-NCI project.\n");
 
 	/* Create NFC task */

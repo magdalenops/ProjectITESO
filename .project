@@ -3,7 +3,6 @@
 	<name>NXPNCI-K64F_Example</name>
 	<comment></comment>
 	<projects>
-		<project>SysView</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

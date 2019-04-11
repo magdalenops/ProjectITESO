@@ -70,6 +70,8 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
+#include "SEGGER_SYSVIEW_FreeRTOS.h"
+#include "fsl_device_registers.h"
 /*-----------------------------------------------------------
  * Application specific definitions.
  *
