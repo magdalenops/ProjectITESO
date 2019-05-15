@@ -27,11 +27,7 @@ i2c_master_transfer_t masterXfer;
 
 typedef enum {ERROR = 0, SUCCESS = !ERROR} Status;
 
-#ifdef FRDM_K64F_REVD1
-void PORTA_IRQHandler(void)
-#else
 void PORTC_IRQHandler(void)
-#endif
 {
 	if (GPIO_ReadPinInput(NXPNCI_IRQ_GPIO, NXPNCI_IRQ_PIN) == 1)
 	{

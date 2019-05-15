@@ -87,10 +87,6 @@ void BOARD_InitPins(void) {
   CLOCK_EnableClock(kCLOCK_PortC);                           /* Port C Clock Gate Control: Clock enabled */
   CLOCK_EnableClock(kCLOCK_PortE);                           /* Port E Clock Gate Control: Clock enabled */
 
-#ifdef FRDM_K64F_REVD1
-    CLOCK_EnableClock(kCLOCK_PortA); //LEGS- Enable the PORTA for the FRDM-K64F Rev-D1. To use PTA0 for OM5578 baord.
-#endif
-
   PORT_SetPinMux(PORTB, PIN16_IDX, kPORT_MuxAlt3);           /* PORTB16 (pin 62) is configured as UART0_RX */
   PORT_SetPinMux(PORTB, PIN17_IDX, kPORT_MuxAlt3);           /* PORTB17 (pin 63) is configured as UART0_TX */
   const port_pin_config_t portc10_pin82_config = {
