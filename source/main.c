@@ -21,7 +21,12 @@
 #include "pin_mux.h"
 #include "clock_config.h"
 #include <nfc_task.h>
+#include "TAG_ID_Control.h"
 
+#include "fsl_debug_console.h"
+ /*         VARIABLES         ----------------------------------------------------------------- FINAL PROYECT*/
+TaskHandle_t NFC_handle;
+/*                  ----------------------------------------------------------------- FINAL PROYECT*/
 #if SYSVIEW_EN
 #include "SEGGER_SYSVIEW.h"
 #include "SEGGER_RTT.h"
@@ -39,6 +44,12 @@ int main(void) {
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
 
+    /*         Function initialization for GPIOS   ----------------------------------------------------------------- FINAL PROYECT*/
+    /*  Function initialization for GPIOS */
+    GPIOinit();
+    flash_init();
+    /*                                         ----------------------------------------------------------------- FINAL PROYECT*/
+	printf("\nRunning the NXP-NCI project.\n\r");
 #if SYSVIEW_EN
     SEGGER_SYSVIEW_Conf();
     printf("RTT block address is: 0x%x\n", &_SEGGER_RTT);
