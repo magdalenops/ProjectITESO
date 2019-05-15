@@ -21,6 +21,7 @@
 #include "pin_mux.h"
 #include "clock_config.h"
 #include <nfc_task.h>
+#include <gps.h>
 
 #if SYSVIEW_EN
 #include "SEGGER_SYSVIEW.h"
@@ -33,12 +34,24 @@
 #define TASK_NFC_STACK_SIZE		1024
 #define TASK_NFC_STACK_PRIO		(configMAX_PRIORITIES - 1)
 
+stGPSData_t NewDataSt;
+
 int main(void) {
     /* Init board hardware. */
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
-
+    vfnInitGPS_UART();
+    uint8_t result=3;
+    uint32_t timer = 0;
+    for(uint8_t Cycle = 0; Cycle<100; Cycle++){
+    result = vfnGetDataGPS(&NewDataSt);
+    printf("GPSDATA is: 0x%x\n", result);
+    printf("GPSDATA Latitude is: 0x%f\n", NewDataSt.Latitude);
+    printf("GPSDATA Longitude is: 0x%f\n", NewDataSt.Longitude);
+    while (timer<0x02ffffff){timer++;}
+    timer = 0;
+    }
 #if SYSVIEW_EN
     SEGGER_SYSVIEW_Conf();
     printf("RTT block address is: 0x%x\n", &_SEGGER_RTT);
