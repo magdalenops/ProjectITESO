@@ -11,8 +11,6 @@
 #include "math.h"	//Math library
 
 /* Pin configuration */
-#define PIN16_IDX                       16u   /*!< Pin number for pin 16 in a port */
-#define PIN17_IDX                       17u   /*!< Pin number for pin 17 in a port */
 #define PIN14_IDX						14u		//Pin number for 14 in a port
 #define PIN15_IDX						15u		//Pin number for 15 in a port
 #define SOPT5_UART0TXSRC_UART_TX      0x00u   /*!< UART 0 transmit data source select: UART0_TX pin */
@@ -408,7 +406,7 @@ static float flfnGetVel(void)
 void vfnInitGPS_UART(void)
 {
 	/* Port clock and pin configurtion */
-	  CLOCK_EnableClock(kCLOCK_PortC);                           /* Port C Clock Gate Control: Clock enabled - UART4 */
+	  //CLOCK_EnableClock(kCLOCK_PortC);                           /* Port C Clock Gate Control: Clock enabled - UART4 */
 
 	  PORT_SetPinMux(PORTC, PIN14_IDX, kPORT_MuxAlt3);           /* PORTB16 (pin 86) is configured as UART4_RX */
 	  PORT_SetPinMux(PORTC, PIN15_IDX, kPORT_MuxAlt3);           /* PORTB17 (pin 87) is configured as UART4_TX */
