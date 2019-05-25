@@ -25,10 +25,28 @@
 SemaphoreHandle_t IrqSem = NULL;
 i2c_master_transfer_t masterXfer;
 
+/* INCLUDES AND VARIABLES        ----------------------------------------------------------------- FINAL PROYECT*/
+#include "pin_mux.h"
+#include "clock_config.h"
+extern uint8_t modeStatus;
+//extern uint8_t IDStatus;
+/*                   ----------------------------------------------------------------- FINAL PROYECT*/
+
+
 typedef enum {ERROR = 0, SUCCESS = !ERROR} Status;
 
 void PORTC_IRQHandler(void)
 {
+
+	/* INTERRUPT SW2         ----------------------------------------------------------------- FINAL PROYECT*/
+	if (GPIO_ReadPinInput(BOARD_SW2_GPIO, BOARD_SW2_GPIO_PIN) == 0)
+	{
+			GPIO_ClearPinsInterruptFlags(BOARD_SW2_GPIO, 1U << BOARD_SW2_GPIO_PIN);
+			modeStatus = 0x02;
+	}
+	/*                       ----------------------------------------------------------------- FINAL PROYECT*/
+
+
 	if (GPIO_ReadPinInput(NXPNCI_IRQ_GPIO, NXPNCI_IRQ_PIN) == 1)
 	{
 	    BaseType_t xHigherPriorityTaskWoken = pdFALSE;

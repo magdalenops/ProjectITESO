@@ -19,7 +19,21 @@
 #include <Nfc.h>
 #include <ndef_helper.h>
 
-//#define RW_NDEF_WRITING
+
+/* INCLUDES AND VARIABLES        ----------------------------------------------------------------- FINAL PROYECT*/
+#include "FreeRTOS.h"
+#include "task.h"
+#include "fsl_debug_console.h"
+#include "semphr.h"
+#include "TAG_ID_Control.h"
+/*extern for final project-------------------------------------*/
+extern uint8_t modeStatus;
+extern uint8_t NDEFMessageStatus;
+extern uint8_t NDEFMessageFlag;
+/*                               ----------------------------------------------------------------- FINAL PROYECT*/
+
+
+#define RW_NDEF_WRITING
 //#define RW_RAW_EXCHANGE
 //#define CARDEMU_RAW_EXCHANGE
 
@@ -166,15 +180,46 @@ void NdefPull_Cb(unsigned char *pNdefMessage, unsigned short NdefMessageSize)
 }
 #endif // if defined P2P_SUPPORT || defined RW_SUPPORT
 
+
+/*         Function initialization for GPIOS   ----------------------------------------------------------------- FINAL PROYECT*/
 #if defined P2P_SUPPORT || defined CARDEMU_SUPPORT
-const char NDEF_MESSAGE[] = { 0xD1,   // MB/ME/CF/1/IL/TNF
+const char NDEF_MESSAGE2[] = { 0xD1,   // MB/ME/CF/1/IL/TNF
         0x01,   // TYPE LENGTH
         0x07,   // PAYLOAD LENTGH
         'T',    // TYPE
         0x02,   // Status
         'e', 'n', // Language
-        'T', 'e', 's', 't' };
+        'F', 'A', 'I', 'L' };
+/*                                         ----------------------------------------------------------------- FINAL PROYECT*/
 
+
+const char NDEF_MESSAGE[] = { 0xD1,   // MB/ME/CF/1/IL/TNF
+        0x01,   // TYPE LENGTH
+        0x2B,   // PAYLOAD LENTGH ALL CHARACTERES PLUS 3
+        'T',    // TYPE
+        0x02,   // Status
+        'e', 'n', // Language
+        'I', 'N', 'I', 'C','I','O','\n',// 7
+		' ', ' ','\n',// 3
+		'F', 'I', 'N','\n',//4
+		' ', ' ','\n',//3
+		'T', 'I', 'E', 'M', 'P', 'O','\n',//7
+		' ', ' ','\n',//3
+		'V', 'E', 'L', 'O', 'C','I','D','A','D','\n',// 10
+		' ', ' ', '\n'//3
+		};
+
+
+const char NDEF_MESSAGE3[] = { 0xD1,   // MB/ME/CF/1/IL/TNF
+        0x01,   // TYPE LENGTH
+        0x08,   // PAYLOAD LENTGH
+        'T',    // TYPE
+        0x02,   // Status
+        'e', 'n', // Language
+        'S', 'T', 'A', 'R', 'T' };
+
+
+/*                                         ----------------------------------------------------------------- FINAL PROYECT*/
 void NdefPush_Cb(unsigned char *pNdefRecord, unsigned short NdefRecordSize) {
     printf("--- NDEF Record sent\n\n");
 }
@@ -292,7 +337,7 @@ void PCD_ISO14443_3A_scenario (void)
     unsigned char Read[] = {0x30, BLK_NB_ISO14443_3A};
     /* Write block */
     unsigned char Write[] = {0xA2, BLK_NB_ISO14443_3A, DATA_WRITE_ISO14443_3A};
-    
+
     /* Read */
     status = NxpNci_ReaderTagCmd(Read, sizeof(Read), Resp, &RespSize);
     if((status == NFC_ERROR) || (Resp[RespSize-1] != 0))
@@ -361,7 +406,24 @@ void displayCardInfo(NxpNci_RfIntf_t RfIntf)
     case (MODE_POLL | TECH_PASSIVE_NFCA):
         printf("\tSENS_RES = 0x%.2x 0x%.2x\n", RfIntf.Info.NFC_APP.SensRes[0], RfIntf.Info.NFC_APP.SensRes[1]);
         print_buf("\tNFCID = ", RfIntf.Info.NFC_APP.NfcId, RfIntf.Info.NFC_APP.NfcIdLen);
-        if(RfIntf.Info.NFC_APP.SelResLen != 0) printf("\tSEL_RES = 0x%.2x\n", RfIntf.Info.NFC_APP.SelRes[0]);
+
+/*        FLASH AND TAG FUNCTIONS                       ----------------------------------------------------------------- FINAL PROYECT*/
+
+        if(modeStatus == 0x00)
+        {
+			vfcnSaveID(&RfIntf.Info.NFC_APP.NfcId[0]);
+        }
+        else if (modeStatus == 0x02)
+        {
+			modeStatus = 0x00;
+			vfcndeleteID();
+        }
+
+        vfcnValidateID();
+
+/*                                                      ----------------------------------------------------------------- FINAL PROYECT*/
+
+        if(RfIntf.Info.NFC_APP.SelResLen != 0) printf("\tSEL_RES = 0x%.2x\n\r", RfIntf.Info.NFC_APP.SelRes[0]);
     break;
 
     case (MODE_POLL | TECH_PASSIVE_NFCB):
@@ -401,10 +463,38 @@ void task_nfc_reader(NxpNci_RfIntf_t RfIntf)
             /* Process NDEF message read */
             NxpNci_ProcessReaderMode(RfIntf, READ_NDEF);
 #ifdef RW_NDEF_WRITING
-            RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE, sizeof(NDEF_MESSAGE), *NdefPush_Cb);
-            /* Process NDEF message write */
-            NxpNci_ReaderReActivate(&RfIntf);
-            NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+
+
+            /*                                      ------------------------------------------------------------------------------------- FINAL PROYECT*/
+            /* Message sent TAG ID Invalid */
+            if(NDEFMessageStatus == 0x03)
+            {
+				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE2, sizeof(NDEF_MESSAGE2), *NdefPush_Cb);
+				/* Process NDEF message write */
+				NxpNci_ReaderReActivate(&RfIntf);
+				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+            }
+            /* Message sent TAG ID valid */
+            if(NDEFMessageFlag == 0x02 && NDEFMessageStatus == 0x02)
+			{
+				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE3, sizeof(NDEF_MESSAGE3), *NdefPush_Cb);
+				/* Process NDEF message write*/
+				NxpNci_ReaderReActivate(&RfIntf);
+				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+			}
+            if(NDEFMessageFlag == 0x01 && NDEFMessageStatus == 0x02)
+			{
+				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE, sizeof(NDEF_MESSAGE), *NdefPush_Cb);
+				/* Process NDEF message write*/
+				NxpNci_ReaderReActivate(&RfIntf);
+				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+			}
+
+
+
+            /*                                                            --------------------------------------------------------------------- FINAL PROYECT*/
+
+
 #endif // RW_NDEF_WRITING
 #else // ifndef RW_RAW_EXCHANGE
             if (RfIntf.Protocol == PROT_ISODEP)
