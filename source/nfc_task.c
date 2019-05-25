@@ -18,6 +18,8 @@
 #include <tool.h>
 #include <Nfc.h>
 #include <ndef_helper.h>
+#include <FreeRTOS.h>
+#include <task.h>
 
 //#define RW_NDEF_WRITING
 //#define RW_RAW_EXCHANGE
@@ -548,7 +550,7 @@ void task_nfc(void)
     while(1)
     {
         printf("\nWAITING FOR DEVICE DISCOVERY\n");
-
+        taskYIELD();
         /* Wait until a peer is discovered */
         while(NxpNci_WaitForDiscoveryNotification(&RfInterface) != NFC_SUCCESS);
 

@@ -432,6 +432,7 @@ void vfnInitGPS_UART(void)
     UART_WriteBlocking(GPS_UART, g_tipString, sizeof(g_tipString) / sizeof(g_tipString[0]));
 
     /* Enable RX interrupt. */
+    NVIC_SetPriority(GPS_UART_IRQn, 5);
     UART_EnableInterrupts(GPS_UART, kUART_RxDataRegFullInterruptEnable | kUART_RxOverrunInterruptEnable);
     EnableIRQ(GPS_UART_IRQn);
 }
