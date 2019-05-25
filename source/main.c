@@ -20,7 +20,6 @@
 #include "clock_config.h"
 #include <nfc_task.h>
 
-#include "tool.h"
 #include "matrix.h"
 
 #if SYSVIEW_EN
