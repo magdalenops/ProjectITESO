@@ -18,6 +18,7 @@
 #include <tool.h>
 #include <Nfc.h>
 #include <ndef_helper.h>
+#include "matrix.h"
 
 //#define RW_NDEF_WRITING
 //#define RW_RAW_EXCHANGE
@@ -524,25 +525,29 @@ void task_nfc(void)
     /* Open connection to NXPNCI device */
     if (NxpNci_Connect() == NFC_ERROR) {
         printf("Error: cannot connect to NXPNCI device\n");
-        return;
+        matrix_send_err(MATRIX_ERR_NFC_PERIPH_CONN);
+        vTaskDelete(NULL);
     }
 
     if (NxpNci_ConfigureSettings() == NFC_ERROR) {
         printf("Error: cannot configure NXPNCI settings\n");
-        return;
+        matrix_send_err(MATRIX_ERR_NFC_CFG);
+        vTaskDelete(NULL);
     }
 
     if (NxpNci_ConfigureMode(mode) == NFC_ERROR)
     {
         printf("Error: cannot configure NXPNCI\n");
-        return;
+        matrix_send_err(MATRIX_ERR_NFC_DRV);
+        vTaskDelete(NULL);
     }
 
     /* Start Discovery */
     if (NxpNci_StartDiscovery(DiscoveryTechnologies,sizeof(DiscoveryTechnologies)) != NFC_SUCCESS)
     {
         printf("Error: cannot start discovery\n");
-        return;
+        matrix_send_err(MATRIX_ERR_NFC_DISCOVERY);
+        vTaskDelete(NULL);
     }
 
     while(1)
