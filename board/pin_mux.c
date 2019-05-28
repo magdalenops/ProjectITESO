@@ -44,6 +44,15 @@ PinsProfile:
 #include "pin_mux.h"
 #include "board.h"
 
+/* DEFINES FOR PINS                     ----------------------------------------------------------------- FINAL PROYECT*/
+#define PIN6_IDX                         6u   /*!< Pin number for pin 4 in a port */
+#define PIN4_IDX                         4u   /*!< Pin number for pin 4 in a port */
+#define PIN22_IDX                       22u   /*!< Pin number for pin 22 in a port */
+#define PIN21_IDX                       21u   /*!< Pin number for pin 21 in a port */
+#define PIN26_IDX                       26u   /*!< Pin number for pin 26 in a port */
+/*                                   ----------------------------------------------------------------- FINAL PROYECT*/
+
+
 #define PIN10_IDX                       10u   /*!< Pin number for pin 10 in a port */
 
 #define PIN11_IDX                       11u   /*!< Pin number for pin 11 in a port */
@@ -83,6 +92,7 @@ BOARD_InitPins:
  *
  *END**************************************************************************/
 void BOARD_InitPins(void) {
+  CLOCK_EnableClock(kCLOCK_PortA);                           /* Port A Clock Gate Control: Clock enabled */
   CLOCK_EnableClock(kCLOCK_PortB);                           /* Port B Clock Gate Control: Clock enabled */
   CLOCK_EnableClock(kCLOCK_PortC);                           /* Port C Clock Gate Control: Clock enabled */
   CLOCK_EnableClock(kCLOCK_PortE);                           /* Port E Clock Gate Control: Clock enabled */
@@ -98,6 +108,35 @@ void BOARD_InitPins(void) {
     kPORT_MuxAlt2,                                           /* Pin is configured as I2C1_SCL */
     kPORT_UnlockRegister                                     /* Pin Control Register fields [15:0] are not locked */
   };
+
+  /* INIT PINS                     ----------------------------------------------------------------- FINAL PROYECT*/
+    const port_pin_config_t porta4_pin38_config = {
+      kPORT_PullUp,                                            /* Internal pull-up resistor is enabled */
+      kPORT_FastSlewRate,                                      /* Fast slew rate is configured */
+      kPORT_PassiveFilterDisable,                              /* Passive filter is disabled */
+      kPORT_OpenDrainDisable,                                  /* Open drain is disabled */
+      kPORT_HighDriveStrength,                                 /* High drive strength is configured */
+      kPORT_MuxAsGpio,                                         /* Pin is configured as PTA4 */
+      kPORT_UnlockRegister                                     /* Pin Control Register fields [15:0] are not locked */
+    };
+    PORT_SetPinConfig(PORTA, PIN4_IDX, &porta4_pin38_config);  /* PORTA4 (pin 38) is configured as PTA4 */
+    const port_pin_config_t portc6_pin78_config = {
+      kPORT_PullUp,                                            /* Internal pull-up resistor is enabled */
+      kPORT_FastSlewRate,                                      /* Fast slew rate is configured */
+      kPORT_PassiveFilterDisable,                              /* Passive filter is disabled */
+      kPORT_OpenDrainDisable,                                  /* Open drain is disabled */
+      kPORT_HighDriveStrength,                                 /* High drive strength is configured */
+      kPORT_MuxAsGpio,                                         /* Pin is configured as PTA4 */
+      kPORT_UnlockRegister                                     /* Pin Control Register fields [15:0] are not locked */
+    };
+    PORT_SetPinConfig(PORTC, PIN6_IDX, &portc6_pin78_config);  /* PORTC6 (pin 78) is configured as PTC6 */
+    PORT_SetPinMux(PORTB, PIN22_IDX, kPORT_MuxAsGpio);         /* PORTB22 (pin 68) is configured as PTB22 */
+    PORT_SetPinMux(PORTB, PIN21_IDX, kPORT_MuxAsGpio);         /* PORTB21 (pin ) is configured as PTB21 */
+    PORT_SetPinMux(PORTE, PIN26_IDX, kPORT_MuxAsGpio);         /* PORTB26 (pin ) is configured as PTB26 */
+
+    /*                                          ----------------------------------------------------------------- FINAL PROYECT*/
+
+
   PORT_SetPinConfig(PORTC, PIN10_IDX, &portc10_pin82_config); /* PORTC10 (pin 82) is configured as I2C1_SCL */
   const port_pin_config_t portc11_pin83_config = {
     kPORT_PullUp,                                            /* Internal pull-up resistor is enabled */
