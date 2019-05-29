@@ -21,6 +21,8 @@
 #include "pin_mux.h"
 #include "clock_config.h"
 #include <nfc_task.h>
+#include <gps_Task.h>
+#include <gps.h>
 #include "TAG_ID_Control.h"
 
 #include "fsl_debug_console.h"
@@ -38,11 +40,14 @@ TaskHandle_t NFC_handle;
 #define TASK_NFC_STACK_SIZE		1024
 #define TASK_NFC_STACK_PRIO		(configMAX_PRIORITIES - 1)
 
+//stGPSData_t NewDataSt;
+
 int main(void) {
     /* Init board hardware. */
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
+    vfnInitGPS_UART();
 
     /*         Function initialization for GPIOS   ----------------------------------------------------------------- FINAL PROYECT*/
     /*  Function initialization for GPIOS */
@@ -66,6 +71,17 @@ int main(void) {
     {
     	printf("Failed to create NFC task");
     }
+
+    /* Create GPS task */
+     if (xTaskCreate((TaskFunction_t) gpsTask,
+					(const char*) "GPS_task",
+					configMINIMAL_STACK_SIZE + 50,
+					NULL,
+					TASK_NFC_STACK_PRIO - 1,
+					NULL) != pdPASS)
+	{
+		printf("Failed to create GPS task");
+	}
 
     vTaskStartScheduler();
     while(1) {}
