@@ -19,9 +19,16 @@
 #include "pin_mux.h"
 #include "clock_config.h"
 #include <nfc_task.h>
+#include <gps_Task.h>
+#include <gps.h>
+#include "TAG_ID_Control.h"
 
 #include "matrix.h"
 
+#include "fsl_debug_console.h"
+ /*         VARIABLES         ----------------------------------------------------------------- FINAL PROYECT*/
+TaskHandle_t NFC_handle;
+/*                  ----------------------------------------------------------------- FINAL PROYECT*/
 #if SYSVIEW_EN
 #include "SEGGER_SYSVIEW.h"
 #include "SEGGER_RTT.h"
@@ -34,13 +41,21 @@
 #define TASK_NFC_STACK_PRIO		(configMAX_PRIORITIES - 1)
 
 static void matrix_task(void *pvParameters);
+//stGPSData_t NewDataSt;
 
 int main(void) {
     /* Init board hardware. */
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
+    vfnInitGPS_UART();
 
+    /*         Function initialization for GPIOS   ----------------------------------------------------------------- FINAL PROYECT*/
+    /*  Function initialization for GPIOS */
+    GPIOinit();
+    flash_init();
+    /*                                         ----------------------------------------------------------------- FINAL PROYECT*/
+	printf("\nRunning the NXP-NCI project.\n\r");
 #if SYSVIEW_EN
     SEGGER_SYSVIEW_Conf();
     printf("RTT block address is: 0x%x\n", &_SEGGER_RTT);
@@ -57,10 +72,21 @@ int main(void) {
     {
     	printf("Failed to create NFC task");
     }
-    	
+
     /* Matrix task */
     if (xTaskCreate(matrix_task, "MATRIX_TASK", 60u, NULL, configMAX_PRIORITIES, NULL) != pdPASS) {
 		printf("MATRIX Task creation failed!.\n");
+	}
+
+    /* Create GPS task */
+     if (xTaskCreate((TaskFunction_t) gpsTask,
+					(const char*) "GPS_task",
+					configMINIMAL_STACK_SIZE + 50,
+					NULL,
+					TASK_NFC_STACK_PRIO - 1,
+					NULL) != pdPASS)
+	{
+		printf("Failed to create GPS task");
 	}
 
     vTaskStartScheduler();
@@ -75,7 +101,7 @@ static void matrix_task(void *pvParameters) {
 	/* Configure GPIO */
 	GPIO_PinInit(GPIOC, MATRIX_POWER_PIN, &matrix_power_pin);
 	GPIO_PortSet(GPIOC, 1u << MATRIX_POWER_PIN);
-	
+
 	/* Waste some time. */
 	volatile uint32_t t = 0xFFFFFF;
 	while (t-- != 0);
