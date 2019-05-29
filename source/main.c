@@ -75,7 +75,7 @@ int main(void) {
     /* Create GPS task */
      if (xTaskCreate((TaskFunction_t) gpsTask,
 					(const char*) "GPS_task",
-					configMINIMAL_STACK_SIZE + 30,
+					configMINIMAL_STACK_SIZE + 50,
 					NULL,
 					TASK_NFC_STACK_PRIO - 1,
 					NULL) != pdPASS)
