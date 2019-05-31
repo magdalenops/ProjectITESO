@@ -31,6 +31,7 @@ typedef enum {
 	MATRIX_PIC_LOCK_CLOSE,
 	MATRIX_PIC_CLEAR,
 	MATRIX_PIC_FULL,
+	MATRIX_PIC_WAIT_CLOCK,
 	MATRIX_PIC_TOTAL
 } matrix_pic;
 
@@ -71,6 +72,7 @@ extern const uint8_t MATRIX_DATA_LOCK_OPEN[8];
 extern const uint8_t MATRIX_DATA_LOCK_CLOSED[8];
 extern const uint8_t MATRIX_DATA_CLEAR[8];
 extern const uint8_t MATRIX_DATA_FULL_PATTERN[8];
+extern const uint8_t MATRIX_DATA_WAIT_CLOCK[8];
 
 void matrix_spi_init(void);
 void matrix_init(void);

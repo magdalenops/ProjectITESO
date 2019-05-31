@@ -50,6 +50,7 @@ void matrix_init() {
 	matrix_pictures[MATRIX_PIC_LOCK_CLOSE] = (uint32_t *) MATRIX_DATA_LOCK_CLOSED;
 	matrix_pictures[MATRIX_PIC_CLEAR] = (uint32_t *) MATRIX_DATA_CLEAR;
 	matrix_pictures[MATRIX_PIC_FULL] = (uint32_t *) MATRIX_DATA_FULL_PATTERN;
+	matrix_pictures[MATRIX_PIC_WAIT_CLOCK] = (uint32_t *) MATRIX_DATA_WAIT_CLOCK;
 
 	_picture_to_print = (uint8_t *) matrix_pictures[MATRIX_PIC_LOCK_CLOSE];
 	matrix_write(MATRIX_CMD_SHUTDOWN, 0x0);

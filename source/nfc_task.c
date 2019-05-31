@@ -476,24 +476,27 @@ void task_nfc_reader(NxpNci_RfIntf_t RfIntf)
 				/* Process NDEF message write */
 				NxpNci_ReaderReActivate(&RfIntf);
 				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+				matrix_send(MATRIX_PIC_LOCK_CLOSE);
             }
             /* Message sent TAG ID valid */
-            if(NDEFMessageFlag == 0x02 && NDEFMessageStatus == 0x02)
+            if(NDEFMessageFlag == 0x02 && NDEFMessageStatus == 0x02)//open lock
 			{
 				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE3, sizeof(NDEF_MESSAGE3), *NdefPush_Cb);
 				/* Process NDEF message write*/
 				NxpNci_ReaderReActivate(&RfIntf);
 				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+				matrix_send(MATRIX_PIC_LOCK_OPEN);
 			}
-            if(NDEFMessageFlag == 0x01 && NDEFMessageStatus == 0x02)
+            if(NDEFMessageFlag == 0x01 && NDEFMessageStatus == 0x02)//data transfer
 			{
 				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE, sizeof(NDEF_MESSAGE), *NdefPush_Cb);
 				/* Process NDEF message write*/
 				NxpNci_ReaderReActivate(&RfIntf);
 				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+				matrix_send(MATRIX_PIC_OK);
 			}
 
-
+            taskYIELD();
 
             /*                                                            --------------------------------------------------------------------- FINAL PROYECT*/
 

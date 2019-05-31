@@ -74,7 +74,7 @@ int main(void) {
     }
 
     /* Matrix task */
-    if (xTaskCreate(matrix_task, "MATRIX_TASK", 60u, NULL, configMAX_PRIORITIES, NULL) != pdPASS) {
+    if (xTaskCreate((TaskFunction_t)matrix_task, "MATRIX_TASK", 60u, NULL, configMAX_PRIORITIES, NULL) != pdPASS) {
 		printf("MATRIX Task creation failed!.\n");
 	}
 
@@ -107,7 +107,7 @@ static void matrix_task(void *pvParameters) {
 	while (t-- != 0);
 	matrix_init();
 
-	vTaskPrioritySet(NULL, tskIDLE_PRIORITY + 2);
+	vTaskPrioritySet(NULL, tskIDLE_PRIORITY + 3);
 	while (1) {
 		EventBits_t eb = xEventGroupWaitBits(matrix_ev_group, MATRIX_EVENT_SEND, pdTRUE, pdFALSE, portMAX_DELAY);
 		if (eb & MATRIX_EVENT_SEND){
