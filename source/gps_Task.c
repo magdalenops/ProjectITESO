@@ -11,18 +11,18 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <matrix.h>
+#include <fsl_debug_console.h>
 
-
+stGPSData_t NewDataSt;
 
 void gpsTask(void)
 {
-	stGPSData_t NewDataSt;
 	uint8_t result=3;
 	uint32_t timer = 0;
 	uint8_t clockFlag = 0x0;
 	while (1){
 		result = vfnGetDataGPS(&NewDataSt);
-		printf("GPSDATA is: 0x%x\n", result);
+		PRINTF("GPSDATA is: 0x%x\n", result);
 		if ((result == 0x1 || result == 0x2 ) &! clockFlag)
 		{
 			matrix_send(MATRIX_PIC_WAIT_CLOCK);

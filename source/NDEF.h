@@ -9,20 +9,13 @@
 #define NDEF_H_
 
 
-typedef struct
-{
-	float Latitud;
-	float Longitud;
-	float Distance;
-	unsigned int DateInSeconds;
-	float Speed;
-}stGPSData;
+#include "gps.h"
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
 
 void Float_To_String(float n, char *res, int afterpoint);
-void Convert_To_NDEF_Message (stGPSData GPS, unsigned int flag, char * ndefarr );
+void Convert_To_NDEF_Message (stGPSData_t GPS, unsigned int flag, char * ndefarr );
 void EPOCH_Converter (unsigned int epoch);
 
 

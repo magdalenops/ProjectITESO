@@ -24,23 +24,21 @@
 
 
 /* INCLUDES AND VARIABLES        ----------------------------------------------------------------- FINAL PROYECT*/
-#include "FreeRTOS.h"
-#include "task.h"
 #include "fsl_debug_console.h"
-#include "semphr.h"
 #include "TAG_ID_Control.h"
 #include "NDEF.h"
-#include "stdio.h"
 #include "math.h"
+#include "gps.h"
 /*extern for final project-------------------------------------*/
 extern uint8_t modeStatus;
 extern uint8_t NDEFMessageStatus;
 extern uint8_t NDEFMessageFlag;
 char buffermessage[100];
 
+extern stGPSData_t NewDataSt;
 
 /*variables for testing-------------------------------------*/
-stGPSData stGPSData1 =
+/*stGPSData stGPSData1 =
 {
 	20.7497921,
 	-103.425095,
@@ -56,7 +54,7 @@ stGPSData stGPSData2 =
 	8889.88,
 	1559269999,
 	777.77
-};
+};*/
 /*variables for testing-------------------------------------*/
 
 
@@ -510,7 +508,7 @@ void task_nfc_reader(NxpNci_RfIntf_t RfIntf)
             /* Message sent TAG ID valid First time*/
             if(NDEFMessageFlag == 0x02 && NDEFMessageStatus == 0x02) //open lock 
 			{
-            	Convert_To_NDEF_Message(stGPSData1,1,buffermessage);
+            	Convert_To_NDEF_Message(NewDataSt,1,buffermessage);
 				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE3, sizeof(NDEF_MESSAGE3), *NdefPush_Cb);
 				/* Process NDEF message write*/
 				NxpNci_ReaderReActivate(&RfIntf);
@@ -520,7 +518,7 @@ void task_nfc_reader(NxpNci_RfIntf_t RfIntf)
             /* Message sent TAG ID valid Second time*/
             if(NDEFMessageFlag == 0x01 && NDEFMessageStatus == 0x02)//data transfer
 			{
-            	Convert_To_NDEF_Message(stGPSData2,2,buffermessage);
+            	Convert_To_NDEF_Message(NewDataSt,2,buffermessage);
             	const char NDEF_MESSAGE_SECOND_TIME[] = { 0xD1,   // MB/ME/CF/1/IL/TNF
             	        0x01,   // TYPE LENGTH
             	        0x88,   // PAYLOAD LENTGH ALL CHARACTERES PLUS 3

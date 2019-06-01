@@ -192,11 +192,11 @@ void Float_To_String(float n, char *res, int afterpoint)
 
 
 
-void Convert_To_NDEF_Message (stGPSData GPS, unsigned int flag, char * ndefarr )
+void Convert_To_NDEF_Message (stGPSData_t GPS, unsigned int flag, char * ndefarr )
 {
 
-	Float_Latitud = GPS.Latitud;
-	Float_Longitud = GPS.Longitud;
+	Float_Latitud = GPS.Latitude;
+	Float_Longitud = GPS.Longitude;
 	Float_Distance = GPS.Distance;
 	Int_DateInSeconds = GPS.DateInSeconds;
 	Float_Speed = GPS.Speed;
