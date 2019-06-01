@@ -18,6 +18,7 @@
 #include <tool.h>
 #include <Nfc.h>
 #include <ndef_helper.h>
+#include "matrix.h"
 #include <FreeRTOS.h>
 #include <task.h>
 
@@ -36,7 +37,6 @@ extern uint8_t modeStatus;
 extern uint8_t NDEFMessageStatus;
 extern uint8_t NDEFMessageFlag;
 char buffermessage[100];
-
 
 
 /*variables for testing-------------------------------------*/
@@ -436,7 +436,7 @@ void displayCardInfo(NxpNci_RfIntf_t RfIntf)
 
     switch(RfIntf.ModeTech) {
     case (MODE_POLL | TECH_PASSIVE_NFCA):
-        printf("\tSENS_RES = 0x%.2x 0x%.2x\n", RfIntf.Info.NFC_APP.SensRes[0], RfIntf.Info.NFC_APP.SensRes[1]);
+		PRINTF("\tSENS_RES = 0x%.2x 0x%.2x\n", RfIntf.Info.NFC_APP.SensRes[0], RfIntf.Info.NFC_APP.SensRes[1]);
         print_buf("\tNFCID = ", RfIntf.Info.NFC_APP.NfcId, RfIntf.Info.NFC_APP.NfcIdLen);
 
 /*        FLASH AND TAG FUNCTIONS                       ----------------------------------------------------------------- FINAL PROYECT*/
@@ -505,21 +505,22 @@ void task_nfc_reader(NxpNci_RfIntf_t RfIntf)
 				/* Process NDEF message write */
 				NxpNci_ReaderReActivate(&RfIntf);
 				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+				matrix_send(MATRIX_PIC_LOCK_CLOSE);
             }
             /* Message sent TAG ID valid First time*/
-            if(NDEFMessageFlag == 0x02 && NDEFMessageStatus == 0x02)
+            if(NDEFMessageFlag == 0x02 && NDEFMessageStatus == 0x02) //open lock 
 			{
             	Convert_To_NDEF_Message(stGPSData1,1,buffermessage);
 				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE3, sizeof(NDEF_MESSAGE3), *NdefPush_Cb);
 				/* Process NDEF message write*/
 				NxpNci_ReaderReActivate(&RfIntf);
 				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+				matrix_send(MATRIX_PIC_LOCK_OPEN);
 			}
             /* Message sent TAG ID valid Second time*/
-            if(NDEFMessageFlag == 0x01 && NDEFMessageStatus == 0x02)
+            if(NDEFMessageFlag == 0x01 && NDEFMessageStatus == 0x02)//data transfer
 			{
             	Convert_To_NDEF_Message(stGPSData2,2,buffermessage);
-
             	const char NDEF_MESSAGE_SECOND_TIME[] = { 0xD1,   // MB/ME/CF/1/IL/TNF
             	        0x01,   // TYPE LENGTH
             	        0x88,   // PAYLOAD LENTGH ALL CHARACTERES PLUS 3
@@ -556,9 +557,10 @@ void task_nfc_reader(NxpNci_RfIntf_t RfIntf)
 				/* Process NDEF message write*/
 				NxpNci_ReaderReActivate(&RfIntf);
 				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
+				matrix_send(MATRIX_PIC_OK);
 			}
 
-
+            taskYIELD();
 
             /*                                                            --------------------------------------------------------------------- FINAL PROYECT*/
 
@@ -682,25 +684,29 @@ void task_nfc(void)
     /* Open connection to NXPNCI device */
     if (NxpNci_Connect() == NFC_ERROR) {
         printf("Error: cannot connect to NXPNCI device\n");
-        return;
+        matrix_send_err(MATRIX_ERR_NFC_PERIPH_CONN);
+        vTaskDelete(NULL);
     }
 
     if (NxpNci_ConfigureSettings() == NFC_ERROR) {
         printf("Error: cannot configure NXPNCI settings\n");
-        return;
+        matrix_send_err(MATRIX_ERR_NFC_CFG);
+        vTaskDelete(NULL);
     }
 
     if (NxpNci_ConfigureMode(mode) == NFC_ERROR)
     {
         printf("Error: cannot configure NXPNCI\n");
-        return;
+        matrix_send_err(MATRIX_ERR_NFC_DRV);
+        vTaskDelete(NULL);
     }
 
     /* Start Discovery */
     if (NxpNci_StartDiscovery(DiscoveryTechnologies,sizeof(DiscoveryTechnologies)) != NFC_SUCCESS)
     {
         printf("Error: cannot start discovery\n");
-        return;
+        matrix_send_err(MATRIX_ERR_NFC_DISCOVERY);
+        vTaskDelete(NULL);
     }
 
     while(1)

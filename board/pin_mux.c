@@ -67,6 +67,13 @@ PinsProfile:
 
 #define SOPT5_UART0TXSRC_UART_TX      0x00u   /*!< UART 0 transmit data source select: UART0_TX pin */
 
+/* Pins required for SPI */
+#define PIN0_IDX                         0u   /*!< Pin number for pin 0 in a port */
+#define PIN1_IDX                         1u   /*!< Pin number for pin 1 in a port */
+#define PIN2_IDX                         2u   /*!< Pin number for pin 2 in a port */
+#define PIN3_IDX                         3u   /*!< Pin number for pin 3 in a port */
+#define MATRIX_POWER_PIN4				4u
+
 /*
  * TEXT BELOW IS USED AS SETTING FOR THE PINS TOOL *****************************
 BOARD_InitPins:
@@ -181,6 +188,16 @@ void BOARD_InitPins(void) {
   NVIC_SetPriority(NXPNCI_IRQ_PORTIRQn, 5);
   EnableIRQ(NXPNCI_IRQ_PORTIRQn);
   PORT_SetPinInterruptConfig(NXPNCI_IRQ_PORT, NXPNCI_IRQ_PIN, kPORT_InterruptRisingEdge);
+
+  /* Stuff for SPI & Matrix */
+  CLOCK_EnableClock(kCLOCK_PortD);
+  PORT_SetPinMux(PORTD, PIN0_IDX, kPORT_MuxAlt2);            /* PORTD0 (pin 93) is configured as SPI0_PCS0 */
+  PORT_SetPinMux(PORTD, PIN1_IDX, kPORT_MuxAlt2);            /* PORTD1 (pin 94) is configured as SPI0_SCK */
+  PORT_SetPinMux(PORTD, PIN2_IDX, kPORT_MuxAlt2);            /* PORTD2 (pin 95) is configured as SPI0_SOUT */
+  PORT_SetPinMux(PORTD, PIN3_IDX, kPORT_MuxAlt2);            /* PORTD3 (pin 96) is configured as SPI0_SIN */
+
+  /* Pin used to manually turn on the display after board boot */
+  PORT_SetPinMux(PORTC, MATRIX_POWER_PIN4, kPORT_MuxAsGpio);
 }
 
 /*******************************************************************************

@@ -437,4 +437,9 @@ void FGPIO_CheckAttributeBytes(FGPIO_Type *base, gpio_checker_attribute_t attrib
  * @}
  */
 
+static inline void GPIO_PortSet(GPIO_Type *base, uint32_t mask)
+{
+    base->PSOR = mask;
+}
+
 #endif /* _FSL_GPIO_H_*/

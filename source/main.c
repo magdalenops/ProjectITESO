@@ -12,8 +12,6 @@
 *                          arising from its use.
 */
 
-#define SYSVIEW_EN 1
-
 #include <stdio.h>
 #include "FreeRTOS.h"
 #include "task.h"
@@ -24,6 +22,8 @@
 #include <gps_Task.h>
 #include <gps.h>
 #include "TAG_ID_Control.h"
+
+#include "matrix.h"
 
 #include "fsl_debug_console.h"
  /*         VARIABLES         ----------------------------------------------------------------- FINAL PROYECT*/
@@ -40,6 +40,7 @@ TaskHandle_t NFC_handle;
 #define TASK_NFC_STACK_SIZE		1024
 #define TASK_NFC_STACK_PRIO		(configMAX_PRIORITIES - 1)
 
+static void matrix_task(void *pvParameters);
 //stGPSData_t NewDataSt;
 
 int main(void) {
@@ -69,8 +70,13 @@ int main(void) {
 					TASK_NFC_STACK_PRIO,
 					NULL) != pdPASS)
     {
-    	printf("Failed to create NFC task");
+    	PRINTF("Failed to create NFC task");
     }
+
+    /* Matrix task */
+    if (xTaskCreate((TaskFunction_t)matrix_task, "MATRIX_TASK", 60u, NULL, configMAX_PRIORITIES, NULL) != pdPASS) {
+    	PRINTF("MATRIX Task creation failed!.\n");
+	}
 
     /* Create GPS task */
      if (xTaskCreate((TaskFunction_t) gpsTask,
@@ -80,12 +86,34 @@ int main(void) {
 					TASK_NFC_STACK_PRIO - 1,
 					NULL) != pdPASS)
 	{
-		printf("Failed to create GPS task");
+    	 PRINTF("Failed to create GPS task");
 	}
 
     vTaskStartScheduler();
     while(1) {}
 	return 0;
+}
+
+static void matrix_task(void *pvParameters) {
+	/* Initialize SPI */
+	matrix_spi_init();
+	gpio_pin_config_t matrix_power_pin = { kGPIO_DigitalOutput, 0 };
+	/* Configure GPIO */
+	GPIO_PinInit(GPIOC, MATRIX_POWER_PIN, &matrix_power_pin);
+	GPIO_PortSet(GPIOC, 1u << MATRIX_POWER_PIN);
+
+	/* Waste some time. */
+	volatile uint32_t t = 0xFFFFFF;
+	while (t-- != 0);
+	matrix_init();
+
+	vTaskPrioritySet(NULL, tskIDLE_PRIORITY + 3);
+	while (1) {
+		EventBits_t eb = xEventGroupWaitBits(matrix_ev_group, MATRIX_EVENT_SEND, pdTRUE, pdFALSE, portMAX_DELAY);
+		if (eb & MATRIX_EVENT_SEND){
+			matrix_print();
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
