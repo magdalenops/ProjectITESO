@@ -40,7 +40,7 @@ float Float_Latitud;
 float Float_Distance;
 unsigned int Int_DateInSeconds;
 float Float_Speed;
-
+float meanSpeed;
 unsigned int Int_DateInSeconds1;
 unsigned int Int_DateInSeconds2;
 unsigned int Int_Total_Time;
@@ -292,7 +292,7 @@ void Convert_To_NDEF_Message (stGPSData GPS, unsigned int flag, char * ndefarr )
 	{
 		Int_DateInSeconds2 = Int_DateInSeconds;
 		Int_Total_Time = (Int_DateInSeconds2 - Int_DateInSeconds1)/60;
-
+		meanSpeed = Float_Distance/((float)Int_Total_Time*1000);
 		lb_integer_value = Int_Total_Time;
 		sprintf(buffer_time, "%d", lb_integer_value);
 
@@ -384,7 +384,7 @@ void Convert_To_NDEF_Message (stGPSData GPS, unsigned int flag, char * ndefarr )
 
 
 		/* SPEED */
-		Float_To_String(Float_Speed, buffer_Speed, 6);
+		Float_To_String(meanSpeed, buffer_Speed, 6);
 		ndefarr[63] = buffer_Speed[0];
 		ndefarr[64] = buffer_Speed[1];
 		ndefarr[65] = buffer_Speed[2];

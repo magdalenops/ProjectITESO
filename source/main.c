@@ -70,12 +70,12 @@ int main(void) {
 					TASK_NFC_STACK_PRIO,
 					NULL) != pdPASS)
     {
-    	printf("Failed to create NFC task");
+    	PRINTF("Failed to create NFC task");
     }
 
     /* Matrix task */
     if (xTaskCreate((TaskFunction_t)matrix_task, "MATRIX_TASK", 60u, NULL, configMAX_PRIORITIES, NULL) != pdPASS) {
-		printf("MATRIX Task creation failed!.\n");
+    	PRINTF("MATRIX Task creation failed!.\n");
 	}
 
     /* Create GPS task */
@@ -86,7 +86,7 @@ int main(void) {
 					TASK_NFC_STACK_PRIO - 1,
 					NULL) != pdPASS)
 	{
-		printf("Failed to create GPS task");
+    	 PRINTF("Failed to create GPS task");
 	}
 
     vTaskStartScheduler();

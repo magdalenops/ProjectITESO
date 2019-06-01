@@ -39,7 +39,6 @@ extern uint8_t NDEFMessageFlag;
 char buffermessage[100];
 
 
-
 /*variables for testing-------------------------------------*/
 stGPSData stGPSData1 =
 {
@@ -437,7 +436,7 @@ void displayCardInfo(NxpNci_RfIntf_t RfIntf)
 
     switch(RfIntf.ModeTech) {
     case (MODE_POLL | TECH_PASSIVE_NFCA):
-        printf("\tSENS_RES = 0x%.2x 0x%.2x\n", RfIntf.Info.NFC_APP.SensRes[0], RfIntf.Info.NFC_APP.SensRes[1]);
+		PRINTF("\tSENS_RES = 0x%.2x 0x%.2x\n", RfIntf.Info.NFC_APP.SensRes[0], RfIntf.Info.NFC_APP.SensRes[1]);
         print_buf("\tNFCID = ", RfIntf.Info.NFC_APP.NfcId, RfIntf.Info.NFC_APP.NfcIdLen);
 
 /*        FLASH AND TAG FUNCTIONS                       ----------------------------------------------------------------- FINAL PROYECT*/
@@ -522,7 +521,6 @@ void task_nfc_reader(NxpNci_RfIntf_t RfIntf)
             if(NDEFMessageFlag == 0x01 && NDEFMessageStatus == 0x02)//data transfer
 			{
             	Convert_To_NDEF_Message(stGPSData2,2,buffermessage);
-
             	const char NDEF_MESSAGE_SECOND_TIME[] = { 0xD1,   // MB/ME/CF/1/IL/TNF
             	        0x01,   // TYPE LENGTH
             	        0x88,   // PAYLOAD LENTGH ALL CHARACTERES PLUS 3
