@@ -28,10 +28,39 @@
 #include "fsl_debug_console.h"
 #include "semphr.h"
 #include "TAG_ID_Control.h"
+#include "NDEF.h"
+#include "stdio.h"
+#include "math.h"
 /*extern for final project-------------------------------------*/
 extern uint8_t modeStatus;
 extern uint8_t NDEFMessageStatus;
 extern uint8_t NDEFMessageFlag;
+char buffermessage[100];
+
+
+
+/*variables for testing-------------------------------------*/
+stGPSData stGPSData1 =
+{
+	20.7497921,
+	-103.425095,
+	25.6,
+	1559258300,
+	36.4
+};
+
+stGPSData stGPSData2 =
+{
+	22.452184,
+	-111.4951478,
+	8889.88,
+	1559269999,
+	777.77
+};
+/*variables for testing-------------------------------------*/
+
+
+
 /*                               ----------------------------------------------------------------- FINAL PROYECT*/
 
 
@@ -224,6 +253,7 @@ const char NDEF_MESSAGE3[] = { 0xD1,   // MB/ME/CF/1/IL/TNF
 /*                                         ----------------------------------------------------------------- FINAL PROYECT*/
 void NdefPush_Cb(unsigned char *pNdefRecord, unsigned short NdefRecordSize) {
     printf("--- NDEF Record sent\n\n");
+    vfcnToggleLed(4);
 }
 #endif // if defined P2P_SUPPORT || defined CARDEMU_SUPPORT
 
@@ -425,7 +455,7 @@ void displayCardInfo(NxpNci_RfIntf_t RfIntf)
 
 /*                                                      ----------------------------------------------------------------- FINAL PROYECT*/
 
-        if(RfIntf.Info.NFC_APP.SelResLen != 0) printf("\tSEL_RES = 0x%.2x\n\r", RfIntf.Info.NFC_APP.SelRes[0]);
+        if(RfIntf.Info.NFC_APP.SelResLen != 0) printf("\tSEL_RES = 0x%.2x\n", RfIntf.Info.NFC_APP.SelRes[0]);
     break;
 
     case (MODE_POLL | TECH_PASSIVE_NFCB):
@@ -476,17 +506,53 @@ void task_nfc_reader(NxpNci_RfIntf_t RfIntf)
 				NxpNci_ReaderReActivate(&RfIntf);
 				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
             }
-            /* Message sent TAG ID valid */
+            /* Message sent TAG ID valid First time*/
             if(NDEFMessageFlag == 0x02 && NDEFMessageStatus == 0x02)
 			{
+            	Convert_To_NDEF_Message(stGPSData1,1,buffermessage);
 				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE3, sizeof(NDEF_MESSAGE3), *NdefPush_Cb);
 				/* Process NDEF message write*/
 				NxpNci_ReaderReActivate(&RfIntf);
 				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
 			}
+            /* Message sent TAG ID valid Second time*/
             if(NDEFMessageFlag == 0x01 && NDEFMessageStatus == 0x02)
 			{
-				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE, sizeof(NDEF_MESSAGE), *NdefPush_Cb);
+            	Convert_To_NDEF_Message(stGPSData2,2,buffermessage);
+
+            	const char NDEF_MESSAGE_SECOND_TIME[] = { 0xD1,   // MB/ME/CF/1/IL/TNF
+            	        0x01,   // TYPE LENGTH
+            	        0x88,   // PAYLOAD LENTGH ALL CHARACTERES PLUS 3
+            	        'T',    // TYPE
+            	        0x02,   // Status
+            	        'e', 'n', // Language
+            	        '\n','I', 'N', 'I', 'C','I','O','\n',// 8 /* TOTAL SIZE 43 *///**********************
+            			buffermessage[0],buffermessage[1],'/',/* Day */ //3
+            			buffermessage[2],buffermessage[3],'/',/* Month */ //3
+            			buffermessage[4],buffermessage[5],buffermessage[6],buffermessage[7],' ',/* Year */ //5
+            			buffermessage[8],buffermessage[9],':', /* Hour *///3
+            			buffermessage[10],buffermessage[11],' ', /* Minutes *///3
+						buffermessage[12],buffermessage[13],buffermessage[14],buffermessage[15],buffermessage[16],buffermessage[17],buffermessage[18],buffermessage[19],buffermessage[20],' ',//10       /* Latitud */
+						buffermessage[21],buffermessage[22],buffermessage[23],buffermessage[24],buffermessage[25],buffermessage[26],buffermessage[27],buffermessage[28],buffermessage[29],//9       /* Longitud */
+            			'\n','F', 'I', 'N','A','L','\n',//7  /* TOTAL SIZE 41 *///******************************
+            			buffermessage[30],buffermessage[31],'/',/* Day */ //3
+            			buffermessage[32],buffermessage[33],'/',/* Month */ //3
+            			buffermessage[34],buffermessage[35],buffermessage[36],buffermessage[37],' ',/* Year */ //5
+            			buffermessage[38],buffermessage[39],':', /* Hour *///3
+            			buffermessage[40],buffermessage[41],' ', /* Minutes *///3
+						buffermessage[42],buffermessage[43],buffermessage[44],buffermessage[45],buffermessage[46],buffermessage[47],buffermessage[48],buffermessage[49],buffermessage[50],' ',//10       /* Latitud */
+						buffermessage[51],buffermessage[52],buffermessage[53],buffermessage[54],buffermessage[55],buffermessage[56],buffermessage[57],buffermessage[58],buffermessage[59],//9       /* Longitud */
+            			'\n','T', 'I', 'E', 'M','P','O','\n',//8
+						buffermessage[60],buffermessage[61],buffermessage[62],' ','M','I','N',//7
+            			'\n','V', 'E', 'L','\n',// 5
+						buffermessage[63],buffermessage[64],buffermessage[65],buffermessage[66],buffermessage[67],buffermessage[68],' ','K','m','/','H',//11
+						'\n','D', 'I', 'S','T','\n',// 6
+						buffermessage[69],buffermessage[70],buffermessage[71],buffermessage[72],buffermessage[73],buffermessage[74],buffermessage[75],' ','M'//19
+
+            			};
+
+
+				RW_NDEF_SetMessage ((unsigned char *) NDEF_MESSAGE_SECOND_TIME, sizeof(NDEF_MESSAGE_SECOND_TIME), *NdefPush_Cb);
 				/* Process NDEF message write*/
 				NxpNci_ReaderReActivate(&RfIntf);
 				NxpNci_ProcessReaderMode(RfIntf, WRITE_NDEF);
