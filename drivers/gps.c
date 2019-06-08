@@ -10,14 +10,20 @@
 #include "gps.h"	//Own header
 #include "math.h"	//Math library
 
+
+#define RAD		(3.1416/180)		//Necessary to Haversine
+#define R		6372.795477			//Curvature of the earth
+
 /* Pin configuration */
+#define PIN16_IDX                       16u   /*!< Pin number for pin 16 in a port */
+#define PIN17_IDX                       17u   /*!< Pin number for pin 17 in a port */
 #define PIN14_IDX						14u		//Pin number for 14 in a port
 #define PIN15_IDX						15u		//Pin number for 15 in a port
 #define SOPT5_UART0TXSRC_UART_TX      0x00u   /*!< UART 0 transmit data source select: UART0_TX pin */
 #define SOPT5_UART4TXSRC_UART_TX	  0x00u
 
 /* Macros */
-#define GPS_MESSAGE_BUFFER_SIZE		67	//Max size of GPS RMC frame
+#define GPS_MESSAGE_BUFFER_SIZE		69	//Max size of GPS RMC frame
 
 
 #define LAT_SIZE					9u	//Latitude size in GPS buffer
@@ -48,6 +54,7 @@ volatile unsigned char gbYear = 0;
 volatile unsigned char gbHour = 0;
 volatile unsigned char gbMin = 0;
 volatile unsigned char gbSec = 0;
+volatile float lflCurrentDistance = 0;
 
 /********************* Private functions *********************/
 
@@ -288,7 +295,7 @@ static int vfnSetUTCOffset(void)
  *   */
 static float flfnCalculateDistance(void)
 {
-	float lflResult = 0, lflPot1 = 0, lflPot2 = 0;
+	float lflResult = 0, lflPot1 = 0, lflPot2 = 0, lflCos1 = 0, lflCos2 = 0;
 
 	if((flOldLatitude == 0 || flOldLongitude == 0 || flCurrentLatitude == 0 || flCurrentLongitude == 0) ||
 		(flOldLatitude > 50 || (flOldLongitude * -1) > 200 || flCurrentLatitude > 50 || (flCurrentLongitude * -1) > 200))	//If there is no information to complete the calculation
@@ -296,19 +303,30 @@ static float flfnCalculateDistance(void)
 		return lflResult;	//Return 0
 	}
 
-	lflPot1 = (pow(((flOldLatitude) - (flCurrentLatitude)), 2));
-	lflPot2 = (pow(((flOldLongitude) - (flCurrentLongitude)), 2));
+	//Without consider earth curve
+	//lflPot1 = (pow(((flOldLatitude) - (flCurrentLatitude)), 2));
+	//lflPot2 = (pow(((flOldLongitude) - (flCurrentLongitude)), 2));
+	//lflResult = (sqrt( lflPot1 + lflPot2 )) * 10000;
 
-	lflResult = (sqrt( lflPot1 + lflPot2 )) * 10000;
+	//Haversine:
+	float lflDifLat = flOldLatitude - flCurrentLatitude;
+	float lflDifLon = flOldLongitude - flCurrentLongitude;
+	lflPot1 = pow(sin((RAD*lflDifLat)/2), 2);
+	lflPot2 = pow(sin((RAD*lflDifLon)/2), 2);
+	lflCos1 = cos(RAD * flOldLatitude);
+	lflCos2 = cos(RAD * flCurrentLatitude);
 
-	//lflResult = (sqrt( (pow(((flOldLatitude) - (flCurrentLatitude)), 2)) + (pow(((flOldLongitude) - (flCurrentLongitude)), 2)) )) * 100000;
+	lflResult = 2 * R * asin(sqrt(lflPot1 + lflCos1 * lflCos2 * lflPot2));
 
-	if(lflResult > 2.3)		//If distance > 2.3m, then is a valid distance, less than 2.3m maybe it is a GPS error
+	lflResult *= 1000;		//To get distance in meters
+
+
+	if(lflResult >= 5 && lflResult < 20)		//If distance >= 4m, then is a valid distance, less than 4m maybe it is a GPS error
 	{
 		return lflResult;	//Return a valid distance
 	}else
 	{
-		return 0;			//Return 0 if distance is less than 2.3m, because maybe it is a GPS error
+		return 0;			//Return 0 if distance is less than 7m or greater than 50m, because maybe it is a GPS error
 	}
 
 }
@@ -378,12 +396,27 @@ static float flfnGetVel(void)
 	float lflSpeedKnots = 0;
 	float lflSpeedKm = 0;
 
-	lflSpeedKnots += (gpsMessageBuffer[46] - 0x30) * 100;
-	lflSpeedKnots += (gpsMessageBuffer[47] - 0x30) * 10;
-	lflSpeedKnots += (gpsMessageBuffer[48] - 0x30);
-	lflSpeedKnots /= 1000;
-	lflSpeedKnots += (gpsMessageBuffer[44] - 0x30);
-	lflSpeedKm = lflSpeedKnots * 1.852;
+	//Check for floating point
+	if(gpsMessageBuffer[45] ==  '.')			//Check where decimal point is located
+	{
+		lflSpeedKnots += (gpsMessageBuffer[46] - 0x30) * 100;
+		lflSpeedKnots += (gpsMessageBuffer[47] - 0x30) * 10;
+		lflSpeedKnots += (gpsMessageBuffer[48] - 0x30);
+		lflSpeedKnots /= 1000;
+		lflSpeedKnots += (gpsMessageBuffer[44] - 0x30);
+		lflSpeedKm = lflSpeedKnots * 1.852;
+	}
+	else if(gpsMessageBuffer[46] ==  '.')		//Check where decimal point is located
+	{
+		lflSpeedKnots += (gpsMessageBuffer[47] - 0x30) * 100;
+		lflSpeedKnots += (gpsMessageBuffer[48] - 0x30) * 10;
+		lflSpeedKnots += (gpsMessageBuffer[49] - 0x30);
+		lflSpeedKnots /= 1000;
+		lflSpeedKnots += (gpsMessageBuffer[44] - 0x30) * 10;
+		lflSpeedKnots += gpsMessageBuffer[45] - 0x30;
+		lflSpeedKm = lflSpeedKnots * 1.852;
+	}
+
 
 	if(lflSpeedKm > 3)
 		return lflSpeedKm;
@@ -406,7 +439,7 @@ static float flfnGetVel(void)
 void vfnInitGPS_UART(void)
 {
 	/* Port clock and pin configurtion */
-	  //CLOCK_EnableClock(kCLOCK_PortC);                           /* Port C Clock Gate Control: Clock enabled - UART4 */
+	  CLOCK_EnableClock(kCLOCK_PortC);                           /* Port C Clock Gate Control: Clock enabled - UART4 */
 
 	  PORT_SetPinMux(PORTC, PIN14_IDX, kPORT_MuxAlt3);           /* PORTB16 (pin 86) is configured as UART4_RX */
 	  PORT_SetPinMux(PORTC, PIN15_IDX, kPORT_MuxAlt3);           /* PORTB17 (pin 87) is configured as UART4_TX */
@@ -432,7 +465,6 @@ void vfnInitGPS_UART(void)
     UART_WriteBlocking(GPS_UART, g_tipString, sizeof(g_tipString) / sizeof(g_tipString[0]));
 
     /* Enable RX interrupt. */
-    NVIC_SetPriority(GPS_UART_IRQn, 5);
     UART_EnableInterrupts(GPS_UART, kUART_RxDataRegFullInterruptEnable | kUART_RxOverrunInterruptEnable);
     EnableIRQ(GPS_UART_IRQn);
 }
@@ -453,6 +485,7 @@ unsigned char vfnGetDataGPS(stGPSData_t * stDataGPS)
 	DisableIRQ(GPS_UART_IRQn);				//Disable UART 4 (GPS) interrupts
 	float lflDistance = 0, lflSpeed = 0;
 	unsigned int ldwDateinSeconds = 0;
+	unsigned char control = 0;
 
 	/* RMC frame validation */
 	if(gpsMessageBuffer[VALID_FRAME_POSITION] == 'V')	//If it is a corrupt frame, return GPS_DATA_NO_OK
@@ -471,23 +504,62 @@ unsigned char vfnGetDataGPS(stGPSData_t * stDataGPS)
 		stDataGPS -> Latitude = flCurrentLatitude;
 		stDataGPS -> Longitude = flCurrentLongitude;
 		lflDistance = flfnCalculateDistance();	//Get current distance
-		stDataGPS -> Distance = lflDistance;
-		flOldLatitude = flCurrentLatitude;		//Load old latitude
-		flOldLongitude = flCurrentLongitude;	//Load old longitude
+		if(lflCurrentDistance == 0 || (lflDistance > 0))
+		{
+			flOldLatitude = flCurrentLatitude;		//Load old latitude
+			flOldLongitude = flCurrentLongitude;	//Load old longitude
+		}
 
 
-		/* Get current time data */
-		gbDate = ((gpsMessageBuffer[51] - 0x30) * 10) + (gpsMessageBuffer[52] - 0x30);
-		gbMon = ((gpsMessageBuffer[53] - 0x30) * 10) + (gpsMessageBuffer[54] - 0x30);
-		gbYear = ((gpsMessageBuffer[55] - 0x30) * 10) + (gpsMessageBuffer[56] - 0x30);
+		lflCurrentDistance += (unsigned int)lflDistance;
+		stDataGPS -> Distance = lflCurrentDistance;	//Store distance in structure
 
+		/*
+		 * Get current time data
+		 * brief:	Here can be five possibilities to get date data:
+		 * 			1. No angle data.
+		 * 			2. Angle size: short	|	Velocity size: short
+		 * 			3. Angle size: short	|	Velocity size: large
+		 * 			4. Angle size: large	|	Velocity size: short
+		 * 			5. Angle size: large	|	Velocity size: large
+		 * */
+
+		//The hour data is always in the same position
 		gbHour = ((gpsMessageBuffer[5]- 0x30) * 10) + (gpsMessageBuffer[6] - 0x30);
 		gbMin = ((gpsMessageBuffer[7] - 0x30) * 10) + (gpsMessageBuffer[8] - 0x30);
 		gbSec = ((gpsMessageBuffer[9] - 0x30) * 10) + (gpsMessageBuffer[10] - 0x30);
 
-		ldwDateinSeconds = dwfnDateInSeconds(vfnSetUTCOffset());		// Determinate date and hour in seconds since 1980 and return value in 4 bytes
 
+		if(gpsMessageBuffer[49] == ',' && gpsMessageBuffer[50] == ',')			//No angle data
+		{
+			gbDate = ((gpsMessageBuffer[51] - 0x30) * 10) + (gpsMessageBuffer[52] - 0x30);
+			gbMon = ((gpsMessageBuffer[53] - 0x30) * 10) + (gpsMessageBuffer[54] - 0x30);
+			gbYear = ((gpsMessageBuffer[55] - 0x30) * 10) + (gpsMessageBuffer[56] - 0x30);
+		}
+		else if(gpsMessageBuffer[49] == ',' && gpsMessageBuffer[50] != ',')		//Check for angle information
+		{
+			if(gpsMessageBuffer[53] == '.')			//Angle size: large and Velocity size: short	|	Angle size: short and Velocity size: large
+			{
+				gbDate = ((gpsMessageBuffer[57] - 0x30) * 10) + (gpsMessageBuffer[58] - 0x30);
+				gbMon = ((gpsMessageBuffer[59] - 0x30) * 10) + (gpsMessageBuffer[60] - 0x30);
+				gbYear = ((gpsMessageBuffer[61] - 0x30) * 10) + (gpsMessageBuffer[62] - 0x30);
+			}
+			else if(gpsMessageBuffer[52] == '.')	//Angle size: short and Velocity size: short
+			{
+				gbDate = ((gpsMessageBuffer[56] - 0x30) * 10) + (gpsMessageBuffer[57] - 0x30);
+				gbMon = ((gpsMessageBuffer[58] - 0x30) * 10) + (gpsMessageBuffer[59] - 0x30);
+				gbYear = ((gpsMessageBuffer[60] - 0x30) * 10) + (gpsMessageBuffer[61] - 0x30);
+			}
+			else if(gpsMessageBuffer[54] == '.')	//Angle size: large and Velocity size: large
+			{
+				gbDate = ((gpsMessageBuffer[58] - 0x30) * 10) + (gpsMessageBuffer[59] - 0x30);
+				gbMon = ((gpsMessageBuffer[60] - 0x30) * 10) + (gpsMessageBuffer[61] - 0x30);
+				gbYear = ((gpsMessageBuffer[62] - 0x30) * 10) + (gpsMessageBuffer[63] - 0x30);
+			}
+		}
+		ldwDateinSeconds = dwfnDateInSeconds(vfnSetUTCOffset());		// Determinate date and hour in seconds since 1980 and return value in 4 bytes
 		stDataGPS -> DateInSeconds = ldwDateinSeconds;
+
 
 		lflSpeed = flfnGetVel();
 		stDataGPS -> Speed = lflSpeed;
@@ -495,6 +567,11 @@ unsigned char vfnGetDataGPS(stGPSData_t * stDataGPS)
 		EnableIRQ(GPS_UART_IRQn);		//Enable UART 4 (GPS) interrupts
 		return GPS_DATA_OK;				//GPS data ok
 
+	}
+
+	for(control = 0; control < GPS_MESSAGE_BUFFER_SIZE; control++)
+	{
+		gpsMessageBuffer[control] = 0;
 	}
 
 	EnableIRQ(GPS_UART_IRQn);		//Enable UART 4 (GPS) interrupts

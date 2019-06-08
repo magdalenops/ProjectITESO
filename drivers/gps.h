@@ -37,7 +37,7 @@
 extern volatile uint16_t txIndex; 			/* Index of the data to send out. */
 extern volatile uint16_t rxIndex; 			/* Index of the memory to save new arrived data. */
 extern volatile uint16_t rxMessageIndex;	//Index of current message arrived
-
+extern volatile float lflCurrentDistance;
 
 typedef struct
 {

@@ -64,7 +64,7 @@ void EPOCH_Converter (unsigned int epoch)
     leap_year_ind=0;
     /* Add or substract time zone here.
      epoch+=19800 ; //GMT +5:30 = +19800 seconds */
-    epoch-=18000 ;
+    epoch-=0x000 ;
 
 
     ntp_second = epoch%60;
@@ -83,7 +83,7 @@ void EPOCH_Converter (unsigned int epoch)
     for (i=1972; i<ntp_year; i+=4)      // Calculating number of leap days since epoch/1970
     if(((i%4==0) && (i%100!=0)) || (i%400==0)) leap_days++;
 
-    ntp_year = 1970+((days_since_epoch - leap_days)/365); // Calculating accurate current year by (days_since_epoch - extra leap days)
+    ntp_year = 1980+((days_since_epoch - leap_days)/365); // Calculating accurate current year by (days_since_epoch - extra leap days)
     day_of_year = ((days_since_epoch - leap_days)%365)+1;
 
 
@@ -290,9 +290,20 @@ void Convert_To_NDEF_Message (stGPSData_t GPS, unsigned int flag, char * ndefarr
 
 	if(flag == 2)
 	{
+		lflCurrentDistance = 0;
 		Int_DateInSeconds2 = Int_DateInSeconds;
-		Int_Total_Time = (Int_DateInSeconds2 - Int_DateInSeconds1)/60;
-		meanSpeed = Float_Distance/((float)Int_Total_Time*1000);
+		Int_Total_Time = (Int_DateInSeconds2 - Int_DateInSeconds1);
+		if(Float_Distance < 1)
+			Float_Distance = 0;
+		if(Int_Total_Time == 0)
+		{
+			meanSpeed = 0;
+		}
+		else if(Int_Total_Time >= 1u)
+		{
+			meanSpeed = (Float_Distance*36)/((float)Int_Total_Time*10);
+		}
+		Int_Total_Time = Int_Total_Time / 60;
 		lb_integer_value = Int_Total_Time;
 		sprintf(buffer_time, "%d", lb_integer_value);
 
