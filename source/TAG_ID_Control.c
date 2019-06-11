@@ -157,7 +157,7 @@ void vfcnToggleLed (uint8_t Color)
 
 		/* Toggle RED LED ON. */
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO, 1U << BOARD_LED_GPIO_PIN);
-		delay();delay();delay();
+		delay();//delay();delay();
 		/* Toggle RED LED OFF. */
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO, 1U << BOARD_LED_GPIO_PIN);
 	    break;
@@ -165,7 +165,7 @@ void vfcnToggleLed (uint8_t Color)
 	  case 2:
 		/* Toggle BLUE LED ON. */
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO_B, 1U << BOARD_LED_GPIO_PIN_B);
-		delay();delay();delay();
+		delay();//delay();delay();
 		/* Toggle BLUE LED OFF. */
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO_B, 1U << BOARD_LED_GPIO_PIN_B);
 	    break;
@@ -173,7 +173,7 @@ void vfcnToggleLed (uint8_t Color)
 	  case 3:
 		/* Toggle GREEN LED ON. */
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO_G, 1U << BOARD_LED_GPIO_PIN_G);
-		delay();delay();delay();
+		delay();//delay();delay();
 		/* Toggle GREEN LED OFF. */
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO_G, 1U << BOARD_LED_GPIO_PIN_G);
 	    break;
@@ -183,7 +183,7 @@ void vfcnToggleLed (uint8_t Color)
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO, 1U << BOARD_LED_GPIO_PIN);
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO_B, 1U << BOARD_LED_GPIO_PIN_B);
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO_G, 1U << BOARD_LED_GPIO_PIN_G);
-		delay();delay();delay();
+		delay();//delay();delay();
 		/* Toggle WHITE LED OFF. */
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO, 1U << BOARD_LED_GPIO_PIN);
 		GPIO_TogglePinsOutput(BOARD_LED_GPIO_B, 1U << BOARD_LED_GPIO_PIN_B);
@@ -308,24 +308,24 @@ with width of 2 sectors ...
         destAdrss = pflashBlockBase + (pflashTotalSize - (SECTOR_INDEX_FROM_END * pflashSectorSize));
 #endif
 
-        result = FLASH_Erase_f(&s_flashDriver, destAdrss, pflashSectorSize, kFTFx_ApiEraseKey);
+        /*result = FLASH_Erase_f(&s_flashDriver, destAdrss, pflashSectorSize, kFTFx_ApiEraseKey);
         if (kStatus_FTFx_Success != result)
         {
             error_trap();
-        }
+        }*/
 
         /* Verify sector if it's been erased. */
-        result = FLASH_VerifyErase_f(&s_flashDriver, destAdrss, pflashSectorSize, kFTFx_MarginValueUser);
+        /*result = FLASH_VerifyErase_f(&s_flashDriver, destAdrss, pflashSectorSize, kFTFx_MarginValueUser);
         if (kStatus_FTFx_Success != result)
         {
             error_trap();
-        }
+        }*/
 
         /* Print message for user. */
-        PRINTF("\r\n Successfully Erased Sector 0x%x -> 0x%x\r\n", destAdrss, (destAdrss + pflashSectorSize));
+        //PRINTF("\r\n Successfully Erased Sector 0x%x -> 0x%x\r\n", destAdrss, (destAdrss + pflashSectorSize));
 
         /* Print message for user. */
-        PRINTF("\r\n Program a buffer to a sector of flash ");
+        //PRINTF("\r\n Program a buffer to a sector of flash ");
         /* Prepare user buffer. */
        /* for (i = 0; i < BUFFER_LEN; i++)
         {
@@ -486,18 +486,6 @@ void vfcnSaveID (unsigned char * ID)
 		flash_write();
 		PRINTF(" ID registered successfully \r\n");
     }
-
-
-	/*if(IDStatus == OK && IDStatusControl == APPROVED)
-	{
-		Data_Base[0] = TAG_ID;
-		PRINTF(" ID registered successfully \r\n");
-		IDStatus = 0x00;
-		IDStatusControl = 0x01;
-
-	}*/
-
-
 }
 
 
@@ -510,30 +498,7 @@ void vfcndeleteID (void)
 
 void vfcnValidateID (void)
 {
-
-
-	/* Check if buffer for flash has saved an ID */
-	if(s_buffer[0] != 0 && s_buffer[1] != 0)
-	{
 	flash_read();
-	}
-	else
-	{
-		vfcnToggleLed(1);
-		NDEFMessageStatus = DENIED;
-		PRINTF(" No TAG has been registered yet \r\n");
-		PRINTF(" You need to register a TAG in order to proceed \r\n");
-		modeStatus = 0x00;
-	}
-
-	/*if(Data_Base[0] == Data_Base[1])
-	{
-		NDEFMessageStatus = 0x01;
-	}
-	else
-	{
-		NDEFMessageStatus = 0x00;
-	}*/
 }
 
 
