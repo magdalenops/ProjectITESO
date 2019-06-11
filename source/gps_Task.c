@@ -27,10 +27,10 @@ void gpsTask(void)
 		{
 			matrix_send(MATRIX_PIC_WAIT_CLOCK);
 			clockFlag = 0x1;
-		} else if (result == 0x1) {clockFlag = 0x1;}
+		} else if (result == 0x0 && clockFlag == 0x1) {clockFlag = 0x0; matrix_send(MATRIX_PIC_LOCK_CLOSE);}
 		//printf("GPSDATA Latitude is: 0x%f\n", NewDataSt.Latitude);
 		//printf("GPSDATA Longitude is: 0x%f\n", NewDataSt.Longitude);
-		while (timer<0x0002ffff){timer++;taskYIELD();}
+		while (timer<0x01fffff){timer++;taskYIELD();}
 
 		timer = 0;
 
