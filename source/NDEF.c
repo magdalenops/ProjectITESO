@@ -49,7 +49,7 @@ unsigned int Int_Total_Time;
 
 
 
-
+//Calculate Date and transfor to Character
 void EPOCH_Converter (unsigned int epoch)
 {
 	static unsigned char month_days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
